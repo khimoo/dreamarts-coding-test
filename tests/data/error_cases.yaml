@@ -1,0 +1,51 @@
+# エラーケースのテストデータ
+# 不正な入力や無効なデータをテストするためのケース
+
+error_cases:
+  - name: "invalid_format_missing_distance"
+    description: "距離が欠けている不正な形式"
+    input: "1,2"
+    expected_error: "Invalid line format"
+
+  - name: "invalid_format_extra_fields"
+    description: "余分なフィールドがある不正な形式"
+    input: "1,2,3.0,4.0"
+    expected_error: "Invalid line format"
+
+  - name: "invalid_number_from"
+    description: "fromノードが無効な数値"
+    input: "abc,2,3.0"
+    expected_error: "invalid digit found"
+
+  - name: "invalid_number_to"
+    description: "toノードが無効な数値"
+    input: "1,xyz,3.0"
+    expected_error: "invalid digit found"
+
+  - name: "invalid_number_distance"
+    description: "距離が無効な数値"
+    input: "1,2,invalid"
+    expected_error: "invalid float"
+
+  - name: "negative_node_id"
+    description: "負のノードID"
+    input: "-1,2,3.0"
+    expected_error: "invalid digit found"
+
+  - name: "empty_fields"
+    description: "空のフィールド"
+    input: ",,"
+    expected_error: "cannot parse integer from empty string"
+
+  - name: "whitespace_only"
+    description: "空白文字のみ"
+    input: "   ,   ,   "
+    expected_error: "cannot parse integer from empty string"
+
+  - name: "mixed_valid_invalid"
+    description: "有効な行と無効な行が混在"
+    input: |
+      1,2,3.0
+      invalid_line
+      3,4,5.0
+    expected_error: "Invalid line format" 
