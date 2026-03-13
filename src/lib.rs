@@ -2,35 +2,50 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone)]
 pub struct Edge {
-    pub to: usize,
+    pub endpoints: (usize, usize),
     pub distance: f64,
+}
+
+impl Edge {
+    /// この辺の、指定したノードから見た反対側の端点を返す
+    pub fn other(&self, node: usize) -> usize {
+        if self.endpoints.0 == node {
+            self.endpoints.1
+        } else {
+            self.endpoints.0
+        }
+    }
 }
 
 #[derive(Debug)]
 pub struct Graph {
-    pub nodes: HashMap<usize, Vec<Edge>>,
+    pub edges: Vec<Edge>,
+    pub adjacency: HashMap<usize, Vec<usize>>,
 }
 
 impl Graph {
     pub fn new() -> Self {
         Graph {
-            nodes: HashMap::new(),
+            edges: Vec::new(),
+            adjacency: HashMap::new(),
         }
     }
 
     pub fn add_edge(&mut self, from: usize, to: usize, distance: f64) {
-        self.nodes.entry(from).or_insert_with(Vec::new).push(Edge { to, distance });
+        if from == to {
+            return;
+        }
+        let idx = self.edges.len();
+        self.edges.push(Edge {
+            endpoints: (from, to),
+            distance,
+        });
+        self.adjacency.entry(from).or_insert_with(Vec::new).push(idx);
+        self.adjacency.entry(to).or_insert_with(Vec::new).push(idx);
     }
 
     pub fn get_all_nodes(&self) -> Vec<usize> {
-        let mut nodes = HashSet::new();
-        for (&from, edges) in &self.nodes {
-            nodes.insert(from);
-            for edge in edges {
-                nodes.insert(edge.to);
-            }
-        }
-        nodes.into_iter().collect()
+        self.adjacency.keys().copied().collect()
     }
 
     pub fn find_longest_path(&self) -> (Vec<usize>, f64) {
@@ -58,10 +73,12 @@ impl Graph {
         let mut best_path = current_path.clone();
         let mut best_distance = 0.0;
 
-        if let Some(edges) = self.nodes.get(&node) {
-            for edge in edges {
-                if !visited.contains(&edge.to) {
-                    let (path, distance) = self.dfs(edge.to, visited, current_path);
+        if let Some(edge_indices) = self.adjacency.get(&node) {
+            for &idx in edge_indices {
+                let edge = &self.edges[idx];
+                let next = edge.other(node);
+                if !visited.contains(&next) {
+                    let (path, distance) = self.dfs(next, visited, current_path);
                     let total_distance = edge.distance + distance;
                     if total_distance > best_distance {
                         best_distance = total_distance;

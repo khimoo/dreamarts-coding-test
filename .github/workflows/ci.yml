@@ -11,12 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+      - uses: cachix/install-nix-action@v30
         with:
-          toolchain: stable
-          override: true
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build
-        run: cargo build --verbose
+        run: nix develop --command cargo build --verbose
       - name: Run tests
-        run: cargo test --all --verbose 
+        run: nix develop --command cargo test --all --verbose
